@@ -40,12 +40,15 @@
                 m = n.n(y),
                 h = n(4),
                 j = {
+                    injected: {
+                        package: null
+                    },
                     walletconnect: {
                         package: x.a,
                         options: {
-                            networkUrl: "https://www.bscscan.com",
+                            networkUrl: "https://bsc-dataseed.binance.org/",
                             rpc: {
-                                56: "https://www.bscscan.com"
+                                56: "https://bsc-dataseed.binance.org/"
                             },
                             chainId: 56
                         }
@@ -61,12 +64,13 @@
                         hover: "#4e49003f"
                     }
                 });
-            var g = {
+var g = {
                     provider: null,
                     web3Provider: null,
                     account: null,
                     chainId: null,
-                    signer: null
+                    signer: null,
+                    bnbBalance: null
                 },
                 w = Object(a.createContext)(g),
                 v = function(e) {
@@ -75,6 +79,18 @@
                         r = Object(l.a)(n, 2),
                         o = r[0],
                         p = r[1],
+                        fetchBnbBalance = Object(a.useCallback)(function(account, provider) {
+                            if (!account || !provider) return;
+                            provider.getBalance(account).then(function(balance) {
+                                p(function(prevState) {
+                                    return Object(f.a)(Object(f.a)({}, prevState), {}, {
+                                        bnbBalance: balance
+                                    });
+                                });
+                            }).catch(function(error) {
+                                console.error("Failed to fetch BNB balance:", error);
+                            });
+                        }, []),
                         d = function() {
                             var e = Object(c.a)(Object(s.a)().mark((function e() {
                                 var t, n, a, i, r;
@@ -93,8 +109,8 @@
                                                 account: i,
                                                 signer: a,
                                                 chainId: r.chainId
-                                            }));
-                                        case 12:
+                                            })), fetchBnbBalance(i, n);
+                                        case 13:
                                         case "end":
                                             return e.stop()
                                     }
@@ -122,22 +138,32 @@
                                             web3Provider: null,
                                             account: null,
                                             chainId: null,
-                                            signer: null
+                                            signer: null,
+                                            bnbBalance: null
                                         })), window.location.reload();
                                     case 7:
                                     case "end":
                                         return e.stop()
                                 }
                             }), e)
-                        }))), [o.provider]);
+                        }))), [o.provider]),
+                        handleAccountsChanged = function(accounts) {
+                            if (accounts.length === 0) {
+                                p(Object(f.a)(Object(f.a)({}, o), {}, {
+                                    account: null,
+                                    bnbBalance: null
+                                }));
+                            } else {
+                                p(Object(f.a)(Object(f.a)({}, o), {}, {
+                                    account: accounts[0]
+                                }));
+                                fetchBnbBalance(accounts[0], o.web3Provider);
+                            }
+                        };
                     return i.a.useEffect((function() {
                         var e;
                         if (null !== (e = o.provider) && void 0 !== e && e.on) {
-                            var t = function(e) {
-                                    p(Object(f.a)(Object(f.a)({}, o), {}, {
-                                        account: e[0]
-                                    }))
-                                },
+                            var t = handleAccountsChanged,
                                 n = function(e) {
                                     window.location.reload()
                                 },
@@ -154,7 +180,8 @@
                             account: o.account,
                             signer: o.signer,
                             connect: d,
-                            disconnect: u
+                            disconnect: u,
+                            bnbBalance: o.bnbBalance
                         },
                         children: t
                     })
